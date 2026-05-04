@@ -50,21 +50,35 @@ type ToolResultEnvelope = {
   _meta?: Record<string, unknown>;
 };
 
+const COLORS = {
+  bg: "#07111f",
+  bg2: "#0d1830",
+  panel: "rgba(10, 20, 40, 0.86)",
+  panelSoft: "rgba(19, 32, 58, 0.82)",
+  border: "rgba(139, 163, 255, 0.14)",
+  text: "#eef4ff",
+  muted: "#94a3c4",
+  muted2: "#6e7f9f",
+  cyan: "#59f3cf",
+  cyanSoft: "#1fd7a7",
+  purple: "#8a7dff",
+  blue: "#57a8ff",
+  amber: "#f5bf63",
+  red: "#ff6d6d",
+};
+
 function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
 
 function formatChange(value: number | undefined) {
   if (typeof value !== "number") return "n/a";
   if (value > 0) return "+" + value;
   return String(value);
-}
-
-function scoreTone(score: number | undefined) {
-  if (typeof score !== "number") return "#5f6b7a";
-  if (score >= 75) return "#1f6b52";
-  if (score >= 60) return "#6f5b19";
-  return "#8b3d31";
 }
 
 function formatDate(value: string | undefined) {
@@ -79,154 +93,84 @@ function formatDate(value: string | undefined) {
   }).format(date);
 }
 
+function displayLabel(input: string | undefined) {
+  if (!input) return "Unknown";
+  return input.replaceAll("-", " ");
+}
+
+function titleCase(input: string | undefined) {
+  return displayLabel(input)
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function scoreColor(score: number | undefined) {
+  if (typeof score !== "number") return COLORS.muted;
+  if (score >= 70) return COLORS.cyan;
+  if (score >= 55) return COLORS.amber;
+  return COLORS.red;
+}
+
+function signalTone(signal: string | undefined) {
+  const normalized = (signal || "").toLowerCase();
+  if (normalized.includes("buy")) return { bg: "rgba(24, 118, 91, 0.26)", border: "rgba(62, 236, 180, 0.34)", text: COLORS.cyan };
+  if (normalized.includes("hold")) return { bg: "rgba(133, 102, 31, 0.24)", border: "rgba(245, 191, 99, 0.24)", text: COLORS.amber };
+  return { bg: "rgba(122, 37, 48, 0.28)", border: "rgba(255, 109, 109, 0.25)", text: COLORS.red };
+}
+
 function shellStyle(): React.CSSProperties {
   return {
-    fontFamily: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
-    color: "#1a2230",
-    background:
-      "radial-gradient(circle at top left, rgba(214, 225, 240, 0.92), rgba(244, 238, 229, 0.98) 46%, rgba(234, 240, 247, 0.96) 100%)",
-    borderRadius: 24,
-    padding: 20,
-    border: "1px solid rgba(42, 59, 78, 0.08)",
-    boxShadow: "0 16px 40px rgba(32, 45, 64, 0.12)",
+    fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    color: COLORS.text,
+    background: [
+      "radial-gradient(circle at 18% 14%, rgba(60, 219, 175, 0.18), transparent 24%)",
+      "radial-gradient(circle at 86% 70%, rgba(122, 95, 255, 0.16), transparent 26%)",
+      "linear-gradient(135deg, #091222 0%, #0c1730 42%, #09111f 100%)",
+    ].join(", "),
+    borderRadius: 26,
+    padding: 18,
+    border: `1px solid ${COLORS.border}`,
+    boxShadow: "0 18px 60px rgba(0, 0, 0, 0.34)",
+    overflow: "hidden",
+  };
+}
+
+function panelStyle(subtle = false): React.CSSProperties {
+  return {
+    background: subtle ? COLORS.panelSoft : COLORS.panel,
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: 22,
+    padding: 16,
+    boxShadow: subtle ? "none" : "0 18px 40px rgba(0, 0, 0, 0.18)",
+    backdropFilter: "blur(16px)",
+  };
+}
+
+function eyebrowStyle(): React.CSSProperties {
+  return {
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: "0.18em",
+    color: COLORS.muted2,
+    margin: 0,
   };
 }
 
 function sectionTitleStyle(): React.CSSProperties {
   return {
-    fontSize: 15,
-    fontWeight: 700,
-    letterSpacing: "0.02em",
+    fontSize: 12,
     textTransform: "uppercase",
-    color: "#6b7280",
+    letterSpacing: "0.18em",
+    color: COLORS.muted2,
     margin: "0 0 12px",
   };
 }
 
-function Card(props: { children: React.ReactNode; subtle?: boolean }) {
-  return (
-    <div
-      style={{
-        borderRadius: 18,
-        padding: 16,
-        background: props.subtle ? "rgba(255,255,255,0.58)" : "rgba(255,255,255,0.78)",
-        border: "1px solid rgba(42, 59, 78, 0.08)",
-        boxShadow: props.subtle ? "none" : "0 10px 24px rgba(45, 58, 77, 0.08)",
-        backdropFilter: "blur(10px)",
-      }}
-    >
-      {props.children}
-    </div>
-  );
-}
-
-function Metric(props: { label: string; value: string; tone?: string }) {
-  return (
-    <Card subtle>
-      <div style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-        {props.label}
-      </div>
-      <div style={{ fontSize: 31, lineHeight: 1, marginBottom: 6, color: props.tone || "#18212d" }}>{props.value}</div>
-    </Card>
-  );
-}
-
-function DimensionCards(props: { items: DimensionScore[]; empty: string }) {
-  if (!props.items.length) {
-    return <Card subtle><p style={{ margin: 0, color: "#6b7280" }}>{props.empty}</p></Card>;
-  }
-
-  return (
-    <div style={{ display: "grid", gap: 12 }}>
-      {props.items.map((item, index) => (
-        <Card key={(item.key || item.label || "dimension") + index}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline", marginBottom: 10 }}>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>{String(item.label || item.key || "Dimension")}</div>
-              <div style={{ fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                Change {formatChange(item.change)}
-              </div>
-            </div>
-            <div style={{ fontSize: 28, color: scoreTone(item.score), whiteSpace: "nowrap" }}>
-              {typeof item.score === "number" ? item.score + "/100" : "n/a"}
-            </div>
-          </div>
-          <div style={{ fontSize: 15, lineHeight: 1.5, color: "#273244" }}>{String(item.summary || "")}</div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-function BulletList(props: { items: React.ReactNode[]; empty?: string }) {
-  if (!props.items.length) {
-    return <Card subtle><p style={{ margin: 0, color: "#6b7280" }}>{props.empty || "None."}</p></Card>;
-  }
-
-  return (
-    <div style={{ display: "grid", gap: 10 }}>
-      {props.items.map((item, index) => (
-        <Card key={index} subtle>
-          <div style={{ fontSize: 15, lineHeight: 1.55 }}>{item}</div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-function DataTable(props: { headers: string[]; rows: string[][] }) {
-  return (
-    <Card>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-          <thead>
-            <tr>
-              {props.headers.map((header) => (
-                <th
-                  key={header}
-                  style={{
-                    textAlign: "left",
-                    padding: "0 0 10px",
-                    borderBottom: "1px solid rgba(42, 59, 78, 0.12)",
-                    color: "#6b7280",
-                    fontSize: 11,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                  }}
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {props.rows.map((row, rowIndex) => (
-              <tr key={row.join("|") + rowIndex}>
-                {row.map((cell, cellIndex) => (
-                  <td
-                    key={cellIndex}
-                    style={{
-                      padding: "12px 0",
-                      borderBottom: rowIndex === props.rows.length - 1 ? "none" : "1px solid rgba(42, 59, 78, 0.06)",
-                      verticalAlign: "top",
-                    }}
-                  >
-                    {cell}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Card>
-  );
-}
-
-
 function HaruspexIcon() {
   return (
-    <svg width="42" height="42" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+    <svg width="40" height="40" viewBox="0 0 32 32" fill="none" aria-hidden="true">
       <defs>
         <radialGradient id="haruspexSphereGrad" cx="50%" cy="40%" r="50%" fx="50%" fy="40%">
           <stop offset="0%" stopColor="#A78BFA" />
@@ -237,7 +181,7 @@ function HaruspexIcon() {
           <stop offset="100%" stopColor="#6D28D9" />
         </linearGradient>
       </defs>
-      <circle cx="16" cy="16" r="15" fill="#1a1a2e" />
+      <circle cx="16" cy="16" r="15" fill="#0c1525" />
       <g stroke="#8B5CF6" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
         <path d="M16 4 L23 9 L16 13 L9 9 Z" />
         <line x1="16" y1="4" x2="16" y2="13" />
@@ -264,41 +208,126 @@ function Header(props: { title: string; subtitle: string; badge?: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "start", marginBottom: 20 }}>
       <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-        <div
-          style={{
-            width: 52,
-            height: 52,
-            borderRadius: 16,
-            display: "grid",
-            placeItems: "center",
-            background: "rgba(255,255,255,0.54)",
-            border: "1px solid rgba(42, 59, 78, 0.08)",
-            boxShadow: "0 8px 20px rgba(45, 58, 77, 0.08)",
-          }}
-        >
+        <div style={{ width: 52, height: 52, display: "grid", placeItems: "center", borderRadius: 16, background: "rgba(255,255,255,0.04)", border: `1px solid ${COLORS.border}` }}>
           <HaruspexIcon />
         </div>
         <div>
-          <div style={{ fontSize: 34, lineHeight: 0.95, marginBottom: 8, letterSpacing: "-0.03em" }}>{props.title}</div>
-          <div style={{ color: "#5d6775", fontSize: 16, lineHeight: 1.4 }}>{props.subtitle}</div>
+          <div style={{ fontSize: 28, letterSpacing: "-0.03em", fontWeight: 700, marginBottom: 4 }}>{props.title}</div>
+          <div style={{ color: COLORS.muted, fontSize: 14, lineHeight: 1.45, maxWidth: 540 }}>{props.subtitle}</div>
         </div>
       </div>
       {props.badge ? (
-        <div
-          style={{
-            padding: "8px 12px",
-            borderRadius: 999,
-            background: "rgba(20, 31, 48, 0.88)",
-            color: "#f4efe6",
-            fontSize: 12,
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            whiteSpace: "nowrap",
-          }}
-        >
+        <div style={{ padding: "8px 12px", borderRadius: 999, background: "rgba(255,255,255,0.04)", border: `1px solid ${COLORS.border}`, color: COLORS.cyan, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.12em", whiteSpace: "nowrap" }}>
           {props.badge}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function Gauge(props: { score: number; outlook: string; change?: number }) {
+  const score = clamp(props.score, 0, 100);
+  const degrees = 360 * (score / 100);
+  const ringColor = scoreColor(score);
+  return (
+    <div style={{ ...panelStyle(), minHeight: 280, position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 40% 35%, rgba(89,243,207,0.18), transparent 30%)" }} />
+      <p style={eyebrowStyle()}>Market conditions</p>
+      <div style={{ display: "grid", placeItems: "center", marginTop: 10 }}>
+        <div
+          style={{
+            width: 220,
+            height: 220,
+            borderRadius: "50%",
+            background: `conic-gradient(${ringColor} ${degrees}deg, rgba(255,255,255,0.08) ${degrees}deg 360deg)`,
+            padding: 16,
+            boxShadow: `0 0 50px ${ringColor}33`,
+          }}
+        >
+          <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "radial-gradient(circle at top, rgba(8,18,33,0.96), rgba(6,13,24,0.98))", border: `1px solid ${COLORS.border}`, display: "grid", placeItems: "center", textAlign: "center" }}>
+            <div>
+              <div style={{ fontSize: 54, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1 }}>{score}</div>
+              <div style={{ fontSize: 24, color: COLORS.muted, marginBottom: 14 }}>/100</div>
+              <div style={{ display: "inline-flex", padding: "8px 14px", borderRadius: 999, border: `1px solid ${COLORS.border}`, background: "rgba(255,255,255,0.04)", color: ringColor, fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase" }}>
+                {props.outlook}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginTop: 14, color: COLORS.muted, fontSize: 13 }}>
+        <span>Composite score strength</span>
+        <span>Momentum {formatChange(props.change)}</span>
+      </div>
+    </div>
+  );
+}
+
+function DecisionCard(props: { signal: string; summary: string }) {
+  const tone = signalTone(props.signal);
+  return (
+    <div style={{ ...panelStyle(true), minHeight: 170 }}>
+      <p style={eyebrowStyle()}>Decision</p>
+      <div style={{ display: "inline-flex", marginTop: 12, marginBottom: 16, padding: "10px 14px", borderRadius: 12, background: tone.bg, border: `1px solid ${tone.border}`, color: tone.text, fontSize: 24, lineHeight: 1, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+        {props.signal}
+      </div>
+      <p style={{ margin: 0, fontSize: 16, lineHeight: 1.55, color: COLORS.text }}>{props.summary}</p>
+    </div>
+  );
+}
+
+function StatChip(props: { title: string; value: string; note: string; tone?: string }) {
+  return (
+    <div style={{ ...panelStyle(true), padding: 14 }}>
+      <div style={{ fontSize: 12, color: COLORS.muted2, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>{props.title}</div>
+      <div style={{ fontSize: 22, color: props.tone || COLORS.text, marginBottom: 6 }}>{props.value}</div>
+      <div style={{ fontSize: 13, color: COLORS.muted }}>{props.note}</div>
+    </div>
+  );
+}
+
+function FactorRow(props: { item: DimensionScore; tone?: string }) {
+  return (
+    <div style={{ ...panelStyle(true), padding: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline", marginBottom: 8 }}>
+        <div style={{ fontSize: 17, fontWeight: 600 }}>{titleCase(props.item.label || props.item.key)}</div>
+        <div style={{ fontSize: 19, color: props.tone || scoreColor(props.item.score) }}>
+          {typeof props.item.score === "number" ? props.item.score + "/100" : "n/a"}
+        </div>
+      </div>
+      <div style={{ fontSize: 12, color: COLORS.muted2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.1em" }}>Change {formatChange(props.item.change)}</div>
+      <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.muted }}>{String(props.item.summary || "")}</div>
+    </div>
+  );
+}
+
+function MatrixTable(props: { rows: string[][]; headers: string[] }) {
+  return (
+    <div style={panelStyle()}>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              {props.headers.map((header) => (
+                <th key={header} style={{ textAlign: "left", paddingBottom: 12, fontSize: 11, color: COLORS.muted2, textTransform: "uppercase", letterSpacing: "0.14em", borderBottom: `1px solid ${COLORS.border}` }}>
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {props.rows.map((row, rowIndex) => (
+              <tr key={row.join("|") + rowIndex}>
+                {row.map((cell, cellIndex) => (
+                  <td key={cellIndex} style={{ padding: "14px 0", borderBottom: rowIndex === props.rows.length - 1 ? "none" : `1px solid ${COLORS.border}`, color: cellIndex === 0 ? COLORS.text : COLORS.muted, fontSize: 14 }}>
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -310,10 +339,9 @@ function App() {
 
   React.useEffect(() => {
     let active = true;
-
     async function connect() {
       try {
-        const createdApp = new McpApp({ name: "HaruspexWidget", version: "0.1.0" }, {});
+        const createdApp = new McpApp({ name: "HaruspexWidget", version: "0.1.1" }, {});
         createdApp.ontoolresult = (params) => {
           if (active) setResult(params as ToolResultEnvelope);
         };
@@ -329,7 +357,6 @@ function App() {
         }
       }
     }
-
     void connect();
     return () => {
       active = false;
@@ -342,8 +369,8 @@ function App() {
   if (error) {
     return (
       <main style={shellStyle()}>
-        <Header title="Haruspex" subtitle="Widget connection failed." badge="Connection error" />
-        <Card><p style={{ margin: 0 }}>{error.message}</p></Card>
+        <Header title="Haruspex" subtitle="Widget connection failed." badge="Error" />
+        <div style={panelStyle()}>{error.message}</div>
       </main>
     );
   }
@@ -352,185 +379,172 @@ function App() {
     return (
       <main style={shellStyle()}>
         <Header title="Haruspex" subtitle="Preparing the latest market view inside ChatGPT." badge="Loading" />
-        <Card subtle><p style={{ margin: 0, color: "#5d6775" }}>Waiting for structured Haruspex analysis data.</p></Card>
+        <div style={panelStyle()}>Waiting for structured Haruspex analysis data.</div>
+      </main>
+    );
+  }
+
+  if (payload.kind === "stock-analysis") {
+    const positives = asArray<DimensionScore>(payload.positives);
+    const watch = asArray<DimensionScore>(payload.watch);
+    const news = asArray<NewsItem>(payload.news);
+    const score = typeof payload.score === "number" ? payload.score : 0;
+    const strongest = positives[0];
+    const keyRisk = watch[0];
+    const decisionSummary = String(payload.trajectorySummary || "Current directional pressure is mixed.");
+
+    return (
+      <main style={shellStyle()}>
+        <Header
+          title={String(payload.symbol || "Haruspex")}
+          subtitle={String(payload.companyName || "Latest Haruspex decision layer for the current market setup.")}
+          badge={String(payload.signal || "analysis")}
+        />
+
+        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "1.05fr 0.95fr", alignItems: "stretch" }}>
+          <Gauge score={score} outlook={String(payload.outlook || "neutral")} change={payload.change as number} />
+          <div style={{ display: "grid", gap: 14 }}>
+            <DecisionCard signal={String(payload.signal || "hold")} summary={decisionSummary} />
+            <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+              <StatChip
+                title="Biggest positive"
+                value={strongest ? titleCase(strongest.label || strongest.key) : "None"}
+                note={strongest ? `Score ${strongest.score ?? "n/a"} • Change ${formatChange(strongest.change)}` : "No supporting factor surfaced"}
+                tone={COLORS.cyan}
+              />
+              <StatChip
+                title="Biggest risk"
+                value={keyRisk ? titleCase(keyRisk.label || keyRisk.key) : "None"}
+                note={keyRisk ? `Score ${keyRisk.score ?? "n/a"} • Change ${formatChange(keyRisk.change)}` : "No acute risk surfaced"}
+                tone={COLORS.red}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gap: 16, marginTop: 16 }}>
+          <div style={panelStyle()}>
+            <p style={sectionTitleStyle()}>Why now</p>
+            <ul style={{ margin: 0, paddingLeft: 18, color: COLORS.text, lineHeight: 1.7 }}>
+              {positives.slice(0, 2).map((item) => (
+                <li key={String(item.key || item.label)}>
+                  Top support: <strong>{titleCase(item.label || item.key)}</strong> is {item.score ?? "n/a"}/100.
+                </li>
+              ))}
+              {keyRisk ? (
+                <li>
+                  Main pressure point: <strong>{titleCase(keyRisk.label || keyRisk.key)}</strong> at {keyRisk.score ?? "n/a"}/100.
+                </li>
+              ) : null}
+              <li>{decisionSummary}</li>
+            </ul>
+          </div>
+
+          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+            <div>
+              <p style={sectionTitleStyle()}>Strongest positives</p>
+              <div style={{ display: "grid", gap: 12 }}>{positives.map((item) => <FactorRow key={String(item.key || item.label)} item={item} />)}</div>
+            </div>
+            <div>
+              <p style={sectionTitleStyle()}>Watch dimensions</p>
+              <div style={{ display: "grid", gap: 12 }}>{watch.map((item) => <FactorRow key={String(item.key || item.label)} item={item} tone={COLORS.red} />)}</div>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1.1fr 0.9fr" }}>
+            <div>
+              <p style={sectionTitleStyle()}>News context</p>
+              <div style={{ display: "grid", gap: 10 }}>
+                {news.slice(0, 4).map((item, index) => (
+                  <div key={String(item.headline) + index} style={panelStyle(true)}>
+                    <div style={{ fontSize: 15, color: COLORS.text, lineHeight: 1.45, marginBottom: 8 }}>{String(item.headline || "")}</div>
+                    <div style={{ fontSize: 12, color: COLORS.muted }}>{String(item.source || "")} {item.publishedAt ? `• ${formatDate(item.publishedAt)}` : ""}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p style={sectionTitleStyle()}>Open full analysis</p>
+              <div style={panelStyle()}>
+                <div style={{ fontSize: 15, color: COLORS.muted, lineHeight: 1.6, marginBottom: 14 }}>
+                  Want the full Haruspex page? Open the live shared analysis below.
+                </div>
+                <a href={String(payload.shareUrl || "#")} style={{ color: COLORS.blue, textDecoration: "none", wordBreak: "break-all", fontSize: 15 }}>
+                  {String(payload.shareUrl || "")}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {disclaimer ? <p style={{ color: COLORS.muted2, fontSize: 12, margin: "16px 2px 0" }}>{disclaimer}</p> : null}
+      </main>
+    );
+  }
+
+  if (payload.kind === "watchlist-review") {
+    const rows = asArray<WatchlistRow>(payload.rows);
+    const movers = asArray<Mover>(payload.biggestMovers);
+    const flags = asArray<WatchFlag>(payload.flags);
+    return (
+      <main style={shellStyle()}>
+        <Header title="Watchlist Review" subtitle="Relative strength, pressure points, and top movers across the names you requested." badge={`${rows.length} covered`} />
+        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(3, minmax(0, 1fr))", marginBottom: 16 }}>
+          <StatChip title="Covered" value={String(rows.length)} note="Tickers with current Haruspex data" tone={COLORS.cyan} />
+          <StatChip title="Biggest mover" value={String(movers[0]?.symbol || "—")} note={String(movers[0]?.summary || "No standout move") } tone={COLORS.blue} />
+          <StatChip title="Main flag" value={String(flags[0]?.symbol || "—")} note={flags[0] ? `${flags[0].dimension || "watch"} at ${flags[0].score || "n/a"}/100` : "No acute flag surfaced"} tone={COLORS.red} />
+        </div>
+        <p style={sectionTitleStyle()}>Ranked results</p>
+        <MatrixTable
+          headers={["Ticker", "Score", "Change", "Signal", "Top driver"]}
+          rows={rows.map((row) => [
+            String(row.symbol || ""),
+            typeof row.score === "number" ? row.score + "/100" : "n/a",
+            formatChange(row.change),
+            String(row.signal || ""),
+            String(row.topDriver || ""),
+          ])}
+        />
+      </main>
+    );
+  }
+
+  if (payload.kind === "thesis-tracker") {
+    const aligned = asArray<DimensionScore>(payload.alignedDimensions);
+    const contradictory = asArray<DimensionScore>(payload.contradictoryDimensions);
+    return (
+      <main style={shellStyle()}>
+        <Header title={String(payload.symbol || "Thesis Check")} subtitle={String(payload.summary || "A structured read on whether the latest Haruspex evidence still supports the current case.")} badge={String(payload.verdict || "review")} />
+        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+          <div>
+            <p style={sectionTitleStyle()}>Supporting dimensions</p>
+            <div style={{ display: "grid", gap: 12 }}>{aligned.map((item) => <FactorRow key={String(item.key || item.label)} item={item} />)}</div>
+          </div>
+          <div>
+            <p style={sectionTitleStyle()}>Contradicting dimensions</p>
+            <div style={{ display: "grid", gap: 12 }}>{contradictory.map((item) => <FactorRow key={String(item.key || item.label)} item={item} tone={COLORS.red} />)}</div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (payload.kind === "stock-search") {
+    const matches = asArray<Record<string, unknown>>(payload.matches);
+    return (
+      <main style={shellStyle()}>
+        <Header title="Ticker Search" subtitle={`Matching listed symbols for “${String(payload.query || "") }”.`} badge={`${matches.length} matches`} />
+        <MatrixTable
+          headers={["Ticker", "Company", "Exchange"]}
+          rows={matches.map((item) => [String(item.symbol || ""), String(item.name || ""), String(item.exchange || "")])}
+        />
       </main>
     );
   }
 
   return (
     <main style={shellStyle()}>
-      {payload.kind === "stock-analysis" && (
-        <>
-          <Header
-            title={String(payload.symbol || "Haruspex")}
-            subtitle="A high-signal snapshot of score, positioning, trajectory, and current news context."
-            badge={String(payload.signal || "analysis")}
-          />
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: 10, marginBottom: 20 }}>
-            <Metric label="Score" value={String(payload.score) + "/100"} tone={scoreTone(payload.score as number)} />
-            <Metric label="Signal" value={String(payload.signal)} />
-            <Metric label="Outlook" value={String(payload.outlook)} />
-            <Metric label="Change" value={formatChange(payload.change as number)} />
-          </div>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Strongest positives</h2>
-            <DimensionCards items={asArray<DimensionScore>(payload.positives)} empty="No positive dimensions surfaced." />
-          </section>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Watch dimensions</h2>
-            <DimensionCards items={asArray<DimensionScore>(payload.watch)} empty="No major watch dimensions right now." />
-          </section>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Trajectory</h2>
-            <Card>
-              <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6 }}>{String(payload.trajectorySummary || "")}</p>
-            </Card>
-          </section>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>News context</h2>
-            <BulletList
-              items={asArray<NewsItem>(payload.news).map((item) => (
-                <>
-                  <strong>{String(item.headline || "")}</strong>
-                  <div style={{ marginTop: 6, color: "#5d6775", fontSize: 13 }}>
-                    {String(item.source || "")} {item.publishedAt ? "• " + formatDate(item.publishedAt) : ""}
-                  </div>
-                </>
-              ))}
-              empty="No news context fetched for this run."
-            />
-          </section>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Verify</h2>
-            <Card subtle>
-              <a href={String(payload.shareUrl || "#")} style={{ color: "#1d4d8f", textDecoration: "none", wordBreak: "break-all", fontSize: 15 }}>
-                {String(payload.shareUrl || "")}
-              </a>
-            </Card>
-          </section>
-        </>
-      )}
-
-      {payload.kind === "watchlist-review" && (
-        <>
-          <Header
-            title="Watchlist"
-            subtitle="A ranked review of relative strength, trend, and emerging pressure points across the requested names."
-            badge={String(asArray<WatchlistRow>(payload.rows).length) + " covered"}
-          />
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Ranked results</h2>
-            <DataTable
-              headers={["Ticker", "Score", "Change", "Signal", "Top driver"]}
-              rows={asArray<WatchlistRow>(payload.rows).map((row) => [
-                String(row.symbol || ""),
-                typeof row.score === "number" ? row.score + "/100" : "n/a",
-                formatChange(row.change),
-                String(row.signal || ""),
-                String(row.topDriver || ""),
-              ])}
-            />
-          </section>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Biggest movers</h2>
-            <BulletList
-              items={asArray<Mover>(payload.biggestMovers).map((item) => (
-                <>
-                  <strong>{String(item.symbol || "")}</strong>
-                  <div style={{ marginTop: 6, color: "#5d6775" }}>{String(item.summary || "")}</div>
-                </>
-              ))}
-              empty="No movers surfaced."
-            />
-          </section>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Watch closely</h2>
-            <BulletList
-              items={asArray<WatchFlag>(payload.flags).map((item) => (
-                <>
-                  <strong>{String(item.symbol || "")}</strong>
-                  <div style={{ marginTop: 6, color: "#5d6775" }}>
-                    {String(item.dimension || "")} at {typeof item.score === "number" ? item.score + "/100" : "n/a"} ({formatChange(item.change)})
-                  </div>
-                </>
-              ))}
-              empty="No acute flags surfaced."
-            />
-          </section>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Coverage gaps</h2>
-            <BulletList items={asArray<string>(payload.missingSymbols).map((item) => <>{item}</>)} empty="No coverage gaps in this request." />
-          </section>
-        </>
-      )}
-
-      {payload.kind === "thesis-tracker" && (
-        <>
-          <Header
-            title={String(payload.symbol || "Thesis")}
-            subtitle={String(payload.summary || "Latest Haruspex evidence against the current investment case.")}
-            badge={String(payload.verdict || "review")}
-          />
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 20 }}>
-            <Metric label="Ticker" value={String(payload.symbol || "")} />
-            <Metric label="Verdict" value={String(payload.verdict || "")} />
-          </div>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Supporting dimensions</h2>
-            <DimensionCards items={asArray<DimensionScore>(payload.alignedDimensions)} empty="No supporting dimensions identified." />
-          </section>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Contradicting dimensions</h2>
-            <DimensionCards items={asArray<DimensionScore>(payload.contradictoryDimensions)} empty="No contradicting dimensions identified." />
-          </section>
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Verify</h2>
-            <Card subtle>
-              <a href={String(payload.shareUrl || "#")} style={{ color: "#1d4d8f", textDecoration: "none", wordBreak: "break-all", fontSize: 15 }}>
-                {String(payload.shareUrl || "")}
-              </a>
-            </Card>
-          </section>
-        </>
-      )}
-
-      {payload.kind === "stock-search" && (
-        <>
-          <Header
-            title="Ticker search"
-            subtitle={"Matching listed names for “" + String(payload.query || "") + "”."}
-            badge={String(asArray<Record<string, unknown>>(payload.matches).length) + " matches"}
-          />
-
-          <section style={{ marginBottom: 18 }}>
-            <h2 style={sectionTitleStyle()}>Results</h2>
-            <DataTable
-              headers={["Ticker", "Company", "Exchange"]}
-              rows={asArray<Record<string, unknown>>(payload.matches).map((item) => [
-                String(item.symbol || ""),
-                String(item.name || ""),
-                String(item.exchange || ""),
-              ])}
-            />
-          </section>
-        </>
-      )}
-
-      {disclaimer ? <p style={{ color: "#697384", fontSize: 12, margin: "10px 2px 0" }}>{disclaimer}</p> : null}
+      <Header title="Haruspex" subtitle="Unsupported widget payload." />
     </main>
   );
 }
