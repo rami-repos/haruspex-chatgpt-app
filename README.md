@@ -11,12 +11,12 @@ This repo is the OpenAI-side companion to your Claude skills project. It keeps t
 
 ## Tool map
 
-| Claude workflow | ChatGPT App tool |
-|---|---|
-| single ticker analysis | `analyze_stock` |
-| watchlist review | `review_watchlist` |
-| thesis tracking | `track_investment_thesis` |
-| ticker disambiguation | `search_stocks` |
+| Claude workflow        | ChatGPT App tool          |
+| ---------------------- | ------------------------- |
+| single ticker analysis | `analyze_stock`           |
+| watchlist review       | `review_watchlist`        |
+| thesis tracking        | `track_investment_thesis` |
+| ticker disambiguation  | `search_stocks`           |
 
 ## Project layout
 
@@ -51,7 +51,7 @@ Optional:
 - `MCP_PATH`
   Default: `/mcp`
 - `HARUSPEX_WIDGET_DOMAIN`
-  Default: `https://chatgpt.haruspex.guru`
+  Default: `https://haruspex-chatgpt-app-nddnkbropq-uc.a.run.app`
 - `HARUSPEX_APP_NAME`
   Default: `haruspex-chatgpt-app`
 - `HARUSPEX_APP_VERSION`
@@ -122,7 +122,6 @@ Optional overrides:
 - `HARUSPEX_SMOKE_WATCHLIST`
 - `HARUSPEX_SMOKE_QUERY`
 - `HARUSPEX_SMOKE_THESIS`
-
 
 ## Cloud deploy
 

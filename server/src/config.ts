@@ -20,6 +20,6 @@ export function loadConfig() {
     port: Number.parseInt(process.env.PORT || String(DEFAULT_PORT), 10),
     host: process.env.HOST?.trim() || DEFAULT_HOST,
     mcpPath: process.env.MCP_PATH?.trim() || DEFAULT_MCP_PATH,
-    widgetDomain: process.env.HARUSPEX_WIDGET_DOMAIN?.trim() || "https://chatgpt.haruspex.guru",
+    widgetDomain: process.env.HARUSPEX_WIDGET_DOMAIN?.trim() || "https://haruspex-chatgpt-app-nddnkbropq-uc.a.run.app",
   };
 }
