@@ -55,7 +55,7 @@ Optional:
 - `HARUSPEX_APP_NAME`
   Default: `haruspex-chatgpt-app`
 - `HARUSPEX_APP_VERSION`
-  Default: `0.1.0`
+  Default: `0.1.1`
 
 ## Local development
 

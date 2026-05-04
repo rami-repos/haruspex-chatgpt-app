@@ -6,7 +6,7 @@ import { z } from "zod";
 import { HaruspexApiClient } from "./api-client.js";
 import type { HaruspexToolResult } from "./types.js";
 
-const RESOURCE_URI = "ui://widget/haruspex-dashboard-v1.html";
+const RESOURCE_URI = "ui://widget/haruspex-dashboard-v2.html";
 const DISCLAIMER_TEXT =
   "Haruspex scores are quantitative signals derived from public data and are provided for informational purposes only. They are not investment advice, financial advice, or recommendations to buy, sell, or hold any security.";
 

@@ -14,7 +14,7 @@ function readRequiredEnv(name: string) {
 export function loadConfig() {
   return {
     appName: process.env.HARUSPEX_APP_NAME?.trim() || "haruspex-chatgpt-app",
-    appVersion: process.env.HARUSPEX_APP_VERSION?.trim() || "0.1.0",
+    appVersion: process.env.HARUSPEX_APP_VERSION?.trim() || "0.1.1",
     apiBaseUrl: process.env.HARUSPEX_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL,
     apiKey: readRequiredEnv("HARUSPEX_CHATGPT_API_KEY"),
     port: Number.parseInt(process.env.PORT || String(DEFAULT_PORT), 10),
