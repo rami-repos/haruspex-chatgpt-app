@@ -70,9 +70,10 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function formatChange(value: number | undefined) {
-  if (typeof value !== "number") return "n/a";
+  if (typeof value !== "number") return "";
   if (value > 0) return "+" + value;
-  return String(value);
+  if (value < 0) return String(value);
+  return "";
 }
 
 function formatDate(value: string | undefined) {
@@ -251,7 +252,7 @@ function Gauge(props: { score: number; outlook: string; change?: number; compact
       </div>
       <div style={{ display: "grid", gridTemplateColumns: props.compact ? "1fr 1fr" : "1fr 1fr", gap: 12, marginTop: 14, color: COLORS.muted, fontSize: 13 }}>
         <span>Composite score strength</span>
-        <span>Momentum {formatChange(props.change)}</span>
+        <span>{formatChange(props.change) ? `Momentum ${formatChange(props.change)}` : "Momentum stable"}</span>
       </div>
     </div>
   );
@@ -272,10 +273,12 @@ function DecisionCard(props: { signal: string; summary: string }) {
 
 function StatChip(props: { title: string; value: string; note: string; tone?: string }) {
   return (
-    <div style={{ ...panelStyle(true), padding: 14, minHeight: 136 }}>
+    <div style={{ ...panelStyle(true), padding: 14, minHeight: 136, display: "flex", flexDirection: "column" }}>
       <div style={{ fontSize: 11, color: COLORS.muted2, textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 12 }}>{props.title}</div>
-      <div style={{ fontSize: 16, lineHeight: 1.2, fontWeight: 500, color: props.tone || COLORS.text, marginBottom: 10, maxWidth: "10ch" }}>{props.value}</div>
-      <div style={{ fontSize: 13, lineHeight: 1.45, color: COLORS.muted }}>{props.note}</div>
+      <div style={{ fontSize: 16, lineHeight: 1.2, fontWeight: 500, color: props.tone || COLORS.text, marginBottom: 10, maxWidth: "10ch", minHeight: 40 }}>
+        {props.value}
+      </div>
+      <div style={{ fontSize: 13, lineHeight: 1.45, color: COLORS.muted, marginTop: "auto" }}>{props.note}</div>
     </div>
   );
 }
@@ -418,13 +421,13 @@ function App() {
               <StatChip
                 title="Biggest positive"
                 value={strongest ? titleCase(strongest.label || strongest.key) : "None"}
-                note={strongest ? `Score ${strongest.score ?? "n/a"} • Change ${formatChange(strongest.change)}` : "No supporting factor surfaced"}
+                note={strongest ? `Score ${strongest.score ?? "n/a"}${formatChange(strongest.change) ? ` • Change ${formatChange(strongest.change)}` : ""}` : "No supporting factor surfaced"}
                 tone={COLORS.cyan}
               />
               <StatChip
                 title="Biggest risk"
                 value={keyRisk ? titleCase(keyRisk.label || keyRisk.key) : "None"}
-                note={keyRisk ? `Score ${keyRisk.score ?? "n/a"} • Change ${formatChange(keyRisk.change)}` : "No acute risk surfaced"}
+                note={keyRisk ? `Score ${keyRisk.score ?? "n/a"}${formatChange(keyRisk.change) ? ` • Change ${formatChange(keyRisk.change)}` : ""}` : "No acute risk surfaced"}
                 tone={COLORS.red}
               />
             </div>
