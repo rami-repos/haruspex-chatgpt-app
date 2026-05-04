@@ -1,5 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { App as McpApp, PostMessageTransport } from "@modelcontextprotocol/ext-apps";
 
 type DimensionScore = {
   key?: string;
@@ -33,45 +34,15 @@ type Mover = {
   summary?: string;
 };
 
-type ToolResultEnvelope = {
-  structuredContent?: {
-    kind?: string;
-    [key: string]: unknown;
-  };
+type ToolPayload = {
+  kind?: string;
+  [key: string]: unknown;
 };
 
-declare global {
-  interface Window {
-    openai?: {
-      toolOutput?: ToolResultEnvelope["structuredContent"];
-      toolResponseMetadata?: Record<string, unknown>;
-    };
-  }
-}
-
-function useToolResult() {
-  const [result, setResult] = React.useState<ToolResultEnvelope | null>(() => {
-    if (window.openai?.toolOutput) {
-      return { structuredContent: window.openai.toolOutput };
-    }
-    return null;
-  });
-
-  React.useEffect(() => {
-    const onMessage = (event: MessageEvent) => {
-      if (event.source !== window.parent) return;
-      const data = event.data;
-      if (!data || data.jsonrpc !== "2.0") return;
-      if (data.method !== "ui/notifications/tool-result") return;
-      setResult(data.params as ToolResultEnvelope);
-    };
-
-    window.addEventListener("message", onMessage, { passive: true });
-    return () => window.removeEventListener("message", onMessage);
-  }, []);
-
-  return result;
-}
+type ToolResultEnvelope = {
+  structuredContent?: ToolPayload;
+  _meta?: Record<string, unknown>;
+};
 
 function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
@@ -177,25 +148,71 @@ function DataTable(props: { headers: string[]; rows: string[][] }) {
 }
 
 function App() {
-  const result = useToolResult();
-  const payload = result?.structuredContent;
-  const disclaimer = String(window.openai?.toolResponseMetadata?.disclaimer || "");
+  const [result, setResult] = React.useState<ToolResultEnvelope | null>(null);
+  const [app, setApp] = React.useState<McpApp | null>(null);
+  const [isConnected, setIsConnected] = React.useState(false);
+  const [error, setError] = React.useState<Error | null>(null);
 
-  if (!payload?.kind) {
-    return (
-      <main style={{ fontFamily: "Georgia, serif", padding: 16 }}>
-        <h1 style={{ fontSize: 20, marginTop: 0 }}>Haruspex</h1>
-        <p style={{ marginBottom: 0 }}>Run a Haruspex tool call from ChatGPT to render stock analysis here.</p>
-      </main>
-    );
-  }
+  React.useEffect(() => {
+    let active = true;
+
+    async function connect() {
+      try {
+        const createdApp = new McpApp({ name: "HaruspexWidget", version: "0.1.0" }, {});
+        createdApp.ontoolresult = (params) => {
+          if (active) {
+            setResult(params as ToolResultEnvelope);
+          }
+        };
+        await createdApp.connect(new PostMessageTransport(window.parent, window.parent));
+        if (active) {
+          setApp(createdApp);
+          setIsConnected(true);
+          setError(null);
+        }
+      } catch (connectionError) {
+        if (active) {
+          setError(connectionError instanceof Error ? connectionError : new Error("Failed to connect widget"));
+          setIsConnected(false);
+          setApp(null);
+        }
+      }
+    }
+
+    void connect();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const payload = result?.structuredContent;
+  const disclaimer = String(result?._meta?.disclaimer || "");
 
   const mainStyle: React.CSSProperties = {
     fontFamily: "Georgia, serif",
     padding: 16,
     color: "#1d1d1b",
     background: "radial-gradient(circle at top, rgba(219,231,245,0.9), rgba(247,243,236,1) 55%)",
+    minHeight: "100vh",
   };
+
+  if (error) {
+    return (
+      <main style={mainStyle}>
+        <h1 style={{ fontSize: 20, marginTop: 0 }}>Haruspex</h1>
+        <p style={{ marginBottom: 0 }}>Widget connection failed: {error.message}</p>
+      </main>
+    );
+  }
+
+  if (!isConnected || !payload?.kind) {
+    return (
+      <main style={mainStyle}>
+        <h1 style={{ fontSize: 20, marginTop: 0 }}>Haruspex</h1>
+        <p style={{ marginBottom: 0 }}>Waiting for Haruspex analysis data from ChatGPT.</p>
+      </main>
+    );
+  }
 
   return (
     <main style={mainStyle}>
@@ -311,7 +328,7 @@ function App() {
       {payload.kind === "stock-search" && (
         <>
           <Section title="Ticker matches">
-            <Card><p style={{ margin: 0 }}>Found {asArray<Record<string, unknown>>(payload.matches).length} matches for {String(payload.query || "") }.</p></Card>
+            <Card><p style={{ margin: 0 }}>Found {asArray<Record<string, unknown>>(payload.matches).length} matches for {String(payload.query || "")}.</p></Card>
           </Section>
           <Section title="Results">
             <DataTable
