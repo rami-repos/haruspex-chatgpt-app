@@ -1,5 +1,6 @@
 const DEFAULT_API_BASE_URL = "https://haruspex.guru/api/v1";
 const DEFAULT_PORT = 8787;
+const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_MCP_PATH = "/mcp";
 
 function readRequiredEnv(name: string) {
@@ -17,6 +18,7 @@ export function loadConfig() {
     apiBaseUrl: process.env.HARUSPEX_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL,
     apiKey: readRequiredEnv("HARUSPEX_API_KEY"),
     port: Number.parseInt(process.env.PORT || String(DEFAULT_PORT), 10),
+    host: process.env.HOST?.trim() || DEFAULT_HOST,
     mcpPath: process.env.MCP_PATH?.trim() || DEFAULT_MCP_PATH,
     widgetDomain: process.env.HARUSPEX_WIDGET_DOMAIN?.trim() || "https://chatgpt.haruspex.guru",
   };

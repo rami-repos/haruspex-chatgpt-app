@@ -1,0 +1,89 @@
+name: Deploy ChatGPT App to Cloud Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: Cloud Run service name
+        required: true
+        default: haruspex-chatgpt-app
+        type: string
+      image_tag:
+        description: Docker image tag
+        required: true
+        default: latest
+        type: string
+      widget_domain:
+        description: Hosted widget base URL
+        required: true
+        default: https://chatgpt.haruspex.guru
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GCP_PROJECT_ID: haruspex-base
+  GCP_REGION: us-central1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/889117051880/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'github-actions@haruspex-base.iam.gserviceaccount.com'
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker --quiet
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            gcr.io/${{ env.GCP_PROJECT_ID }}/${{ inputs.service_name }}:${{ inputs.image_tag }}
+            gcr.io/${{ env.GCP_PROJECT_ID }}/${{ inputs.service_name }}:latest
+          cache-from: type=gha,scope=haruspex-chatgpt-app
+          cache-to: type=gha,mode=max,scope=haruspex-chatgpt-app
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ inputs.service_name }} \
+            --image gcr.io/${{ env.GCP_PROJECT_ID }}/${{ inputs.service_name }}:${{ inputs.image_tag }} \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --set-env-vars="NODE_ENV=production,PORT=8080,HOST=0.0.0.0,MCP_PATH=/mcp,HARUSPEX_API_BASE_URL=https://haruspex.guru/api/v1,HARUSPEX_WIDGET_DOMAIN=${{ inputs.widget_domain }},HARUSPEX_APP_NAME=haruspex-chatgpt-app,HARUSPEX_APP_VERSION=0.1.0" \
+            --set-secrets="HARUSPEX_API_KEY=HARUSPEX_API_KEY:latest" \
+            --memory 1Gi \
+            --cpu 1 \
+            --concurrency 20 \
+            --min-instances 0 \
+            --max-instances 5 \
+            --timeout 300
+
+      - name: Report service URL
+        run: |
+          URL=$(gcloud run services describe ${{ inputs.service_name }} \
+            --region ${{ env.GCP_REGION }} \
+            --format "value(status.url)")
+          echo "Deployed ${{ inputs.service_name }} to: $URL"
+          echo "MCP endpoint: $URL/mcp"

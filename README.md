@@ -122,3 +122,54 @@ Optional overrides:
 - `HARUSPEX_SMOKE_WATCHLIST`
 - `HARUSPEX_SMOKE_QUERY`
 - `HARUSPEX_SMOKE_THESIS`
+
+
+## Cloud deploy
+
+The `haruspex-skills` repo itself does not contain the production Cloud Run deploy files. This repo now uses the same general deployment pattern as the main Haruspex stack: Docker image build in GitHub Actions, Google Cloud auth through Workload Identity Federation, then `gcloud run deploy`.
+
+Added files:
+
+- `Dockerfile`
+- `.dockerignore`
+- `.github/workflows/deploy-cloud-run.yml`
+
+### Required GitHub configuration
+
+This workflow now matches the existing Haruspex GCP setup directly:
+
+- GCP project: `haruspex-base`
+- region: `us-central1`
+- Workload Identity provider: `projects/889117051880/locations/global/workloadIdentityPools/github-pool/providers/github-provider`
+- deployer service account: `github-actions@haruspex-base.iam.gserviceaccount.com`
+
+Google Cloud Secret Manager:
+
+- `HARUSPEX_API_KEY`
+
+Required workflow input at deploy time:
+
+- `widget_domain`
+  Example: `https://chatgpt.haruspex.guru`
+
+### Manual deploy
+
+After pushing this repo to GitHub:
+
+1. Open the `Deploy ChatGPT App to Cloud Run` workflow in GitHub Actions.
+2. Run it with the default service name `haruspex-chatgpt-app` or your preferred name.
+3. Set `widget_domain` to the hosted base URL for your ChatGPT widget frontend.
+4. The deployed MCP endpoint will be available at: `https://<cloud-run-url>/mcp`
+
+### Local container smoke check
+
+```bash
+docker build -t haruspex-chatgpt-app .
+docker run --rm -p 8080:8080 -e HARUSPEX_API_KEY=your_real_key_here -e HARUSPEX_WIDGET_DOMAIN=https://chatgpt.haruspex.guru haruspex-chatgpt-app
+```
+
+Then open:
+
+- `http://127.0.0.1:8080/`
+- `http://127.0.0.1:8080/health`
+- MCP endpoint: `http://127.0.0.1:8080/mcp`

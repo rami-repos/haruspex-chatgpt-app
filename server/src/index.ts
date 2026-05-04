@@ -37,6 +37,12 @@ async function start() {
 
     const url = new URL(req.url, "http://" + (req.headers.host || "localhost"));
 
+    if (url.pathname === "/health") {
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify({ ok: true, service: config.appName, path: config.mcpPath }));
+      return;
+    }
+
     if (url.pathname === "/") {
       res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
       res.end([
@@ -65,8 +71,8 @@ async function start() {
     await transport.handleRequest(req, res);
   });
 
-  httpServer.listen(config.port, () => {
-    console.log("Haruspex MCP server listening on http://localhost:" + config.port + config.mcpPath);
+  httpServer.listen(config.port, config.host, () => {
+    console.log("Haruspex MCP server listening on http://" + config.host + ":" + config.port + config.mcpPath);
   });
 }
 
