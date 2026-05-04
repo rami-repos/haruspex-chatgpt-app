@@ -34,12 +34,6 @@ type Mover = {
   summary?: string;
 };
 
-type NewsItem = {
-  headline?: string;
-  source?: string;
-  publishedAt?: string;
-};
-
 type ToolPayload = {
   kind?: string;
   [key: string]: unknown;
@@ -225,19 +219,19 @@ function Header(props: { title: string; subtitle: string; badge?: string }) {
   );
 }
 
-function Gauge(props: { score: number; outlook: string; change?: number }) {
+function Gauge(props: { score: number; outlook: string; change?: number; compact?: boolean }) {
   const score = clamp(props.score, 0, 100);
   const degrees = 360 * (score / 100);
   const ringColor = scoreColor(score);
   return (
-    <div style={{ ...panelStyle(), minHeight: 280, position: "relative", overflow: "hidden" }}>
+    <div style={{ ...panelStyle(), minHeight: props.compact ? 0 : 280, position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 40% 35%, rgba(89,243,207,0.18), transparent 30%)" }} />
       <p style={eyebrowStyle()}>Market conditions</p>
       <div style={{ display: "grid", placeItems: "center", marginTop: 10 }}>
         <div
           style={{
-            width: 220,
-            height: 220,
+            width: props.compact ? 170 : 220,
+            height: props.compact ? 170 : 220,
             borderRadius: "50%",
             background: `conic-gradient(${ringColor} ${degrees}deg, rgba(255,255,255,0.08) ${degrees}deg 360deg)`,
             padding: 16,
@@ -246,8 +240,8 @@ function Gauge(props: { score: number; outlook: string; change?: number }) {
         >
           <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "radial-gradient(circle at top, rgba(8,18,33,0.96), rgba(6,13,24,0.98))", border: `1px solid ${COLORS.border}`, display: "grid", placeItems: "center", textAlign: "center" }}>
             <div>
-              <div style={{ fontSize: 54, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1 }}>{score}</div>
-              <div style={{ fontSize: 24, color: COLORS.muted, marginBottom: 14 }}>/100</div>
+              <div style={{ fontSize: props.compact ? 42 : 54, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1 }}>{score}</div>
+              <div style={{ fontSize: props.compact ? 18 : 24, color: COLORS.muted, marginBottom: 14 }}>/100</div>
               <div style={{ display: "inline-flex", padding: "8px 14px", borderRadius: 999, border: `1px solid ${COLORS.border}`, background: "rgba(255,255,255,0.04)", color: ringColor, fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase" }}>
                 {props.outlook}
               </div>
@@ -255,7 +249,7 @@ function Gauge(props: { score: number; outlook: string; change?: number }) {
           </div>
         </div>
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginTop: 14, color: COLORS.muted, fontSize: 13 }}>
+      <div style={{ display: "grid", gridTemplateColumns: props.compact ? "1fr 1fr" : "1fr 1fr", gap: 12, marginTop: 14, color: COLORS.muted, fontSize: 13 }}>
         <span>Composite score strength</span>
         <span>Momentum {formatChange(props.change)}</span>
       </div>
@@ -278,10 +272,10 @@ function DecisionCard(props: { signal: string; summary: string }) {
 
 function StatChip(props: { title: string; value: string; note: string; tone?: string }) {
   return (
-    <div style={{ ...panelStyle(true), padding: 14 }}>
-      <div style={{ fontSize: 12, color: COLORS.muted2, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>{props.title}</div>
-      <div style={{ fontSize: 22, color: props.tone || COLORS.text, marginBottom: 6 }}>{props.value}</div>
-      <div style={{ fontSize: 13, color: COLORS.muted }}>{props.note}</div>
+    <div style={{ ...panelStyle(true), padding: 14, minHeight: 136 }}>
+      <div style={{ fontSize: 11, color: COLORS.muted2, textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 12 }}>{props.title}</div>
+      <div style={{ fontSize: 16, lineHeight: 1.2, fontWeight: 500, color: props.tone || COLORS.text, marginBottom: 10, maxWidth: "10ch" }}>{props.value}</div>
+      <div style={{ fontSize: 13, lineHeight: 1.45, color: COLORS.muted }}>{props.note}</div>
     </div>
   );
 }
@@ -332,7 +326,23 @@ function MatrixTable(props: { rows: string[][]; headers: string[] }) {
   );
 }
 
+
+function useViewportWidth() {
+  const [width, setWidth] = React.useState(() => (typeof window === "undefined" ? 1024 : window.innerWidth));
+
+  React.useEffect(() => {
+    const update = () => setWidth(window.innerWidth);
+    update();
+    window.addEventListener("resize", update, { passive: true });
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return width;
+}
+
 function App() {
+  const viewportWidth = useViewportWidth();
+  const isMobile = viewportWidth < 700;
   const [result, setResult] = React.useState<ToolResultEnvelope | null>(null);
   const [isConnected, setIsConnected] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
@@ -387,7 +397,6 @@ function App() {
   if (payload.kind === "stock-analysis") {
     const positives = asArray<DimensionScore>(payload.positives);
     const watch = asArray<DimensionScore>(payload.watch);
-    const news = asArray<NewsItem>(payload.news);
     const score = typeof payload.score === "number" ? payload.score : 0;
     const strongest = positives[0];
     const keyRisk = watch[0];
@@ -401,11 +410,11 @@ function App() {
           badge={String(payload.signal || "analysis")}
         />
 
-        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "1.05fr 0.95fr", alignItems: "stretch" }}>
-          <Gauge score={score} outlook={String(payload.outlook || "neutral")} change={payload.change as number} />
+        <div style={{ display: "grid", gap: 14, gridTemplateColumns: isMobile ? "1fr" : "1.05fr 0.95fr", alignItems: "stretch" }}>
+          <Gauge score={score} outlook={String(payload.outlook || "neutral")} change={payload.change as number} compact={isMobile} />
           <div style={{ display: "grid", gap: 14 }}>
             <DecisionCard signal={String(payload.signal || "hold")} summary={decisionSummary} />
-            <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+            <div style={{ display: "grid", gap: 12, gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(2, minmax(0, 1fr))" }}>
               <StatChip
                 title="Biggest positive"
                 value={strongest ? titleCase(strongest.label || strongest.key) : "None"}
@@ -440,7 +449,7 @@ function App() {
             </ul>
           </div>
 
-          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+          <div style={{ display: "grid", gap: 16, gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))" }}>
             <div>
               <p style={sectionTitleStyle()}>Strongest positives</p>
               <div style={{ display: "grid", gap: 12 }}>{positives.map((item) => <FactorRow key={String(item.key || item.label)} item={item} />)}</div>
@@ -451,28 +460,15 @@ function App() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1.1fr 0.9fr" }}>
-            <div>
-              <p style={sectionTitleStyle()}>News context</p>
-              <div style={{ display: "grid", gap: 10 }}>
-                {news.slice(0, 4).map((item, index) => (
-                  <div key={String(item.headline) + index} style={panelStyle(true)}>
-                    <div style={{ fontSize: 15, color: COLORS.text, lineHeight: 1.45, marginBottom: 8 }}>{String(item.headline || "")}</div>
-                    <div style={{ fontSize: 12, color: COLORS.muted }}>{String(item.source || "")} {item.publishedAt ? `• ${formatDate(item.publishedAt)}` : ""}</div>
-                  </div>
-                ))}
+          <div>
+            <p style={sectionTitleStyle()}>Open full analysis</p>
+            <div style={panelStyle()}>
+              <div style={{ fontSize: 15, color: COLORS.muted, lineHeight: 1.6, marginBottom: 14 }}>
+                Want the full Haruspex page? Open the live shared analysis below.
               </div>
-            </div>
-            <div>
-              <p style={sectionTitleStyle()}>Open full analysis</p>
-              <div style={panelStyle()}>
-                <div style={{ fontSize: 15, color: COLORS.muted, lineHeight: 1.6, marginBottom: 14 }}>
-                  Want the full Haruspex page? Open the live shared analysis below.
-                </div>
-                <a href={String(payload.shareUrl || "#")} style={{ color: COLORS.blue, textDecoration: "none", wordBreak: "break-all", fontSize: 15 }}>
-                  {String(payload.shareUrl || "")}
-                </a>
-              </div>
+              <a href={String(payload.shareUrl || "#")} style={{ color: COLORS.blue, textDecoration: "none", wordBreak: "break-all", fontSize: 15 }}>
+                {String(payload.shareUrl || "")}
+              </a>
             </div>
           </div>
         </div>
@@ -489,7 +485,7 @@ function App() {
     return (
       <main style={shellStyle()}>
         <Header title="Watchlist Review" subtitle="Relative strength, pressure points, and top movers across the names you requested." badge={`${rows.length} covered`} />
-        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(3, minmax(0, 1fr))", marginBottom: 16 }}>
+        <div style={{ display: "grid", gap: 14, gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", marginBottom: 16 }}>
           <StatChip title="Covered" value={String(rows.length)} note="Tickers with current Haruspex data" tone={COLORS.cyan} />
           <StatChip title="Biggest mover" value={String(movers[0]?.symbol || "—")} note={String(movers[0]?.summary || "No standout move") } tone={COLORS.blue} />
           <StatChip title="Main flag" value={String(flags[0]?.symbol || "—")} note={flags[0] ? `${flags[0].dimension || "watch"} at ${flags[0].score || "n/a"}/100` : "No acute flag surfaced"} tone={COLORS.red} />
@@ -515,7 +511,7 @@ function App() {
     return (
       <main style={shellStyle()}>
         <Header title={String(payload.symbol || "Thesis Check")} subtitle={String(payload.summary || "A structured read on whether the latest Haruspex evidence still supports the current case.")} badge={String(payload.verdict || "review")} />
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+        <div style={{ display: "grid", gap: 16, gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))" }}>
           <div>
             <p style={sectionTitleStyle()}>Supporting dimensions</p>
             <div style={{ display: "grid", gap: 12 }}>{aligned.map((item) => <FactorRow key={String(item.key || item.label)} item={item} />)}</div>
