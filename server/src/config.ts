@@ -16,7 +16,7 @@ export function loadConfig() {
     appName: process.env.HARUSPEX_APP_NAME?.trim() || "haruspex-chatgpt-app",
     appVersion: process.env.HARUSPEX_APP_VERSION?.trim() || "0.1.0",
     apiBaseUrl: process.env.HARUSPEX_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL,
-    apiKey: readRequiredEnv("HARUSPEX_API_KEY"),
+    apiKey: readRequiredEnv("HARUSPEX_CHATGPT_API_KEY"),
     port: Number.parseInt(process.env.PORT || String(DEFAULT_PORT), 10),
     host: process.env.HOST?.trim() || DEFAULT_HOST,
     mcpPath: process.env.MCP_PATH?.trim() || DEFAULT_MCP_PATH,

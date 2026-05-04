@@ -40,7 +40,7 @@ This repo is the OpenAI-side companion to your Claude skills project. It keeps t
 
 Required:
 
-- `HARUSPEX_API_KEY`
+- `HARUSPEX_CHATGPT_API_KEY`
 
 Optional:
 
@@ -68,7 +68,7 @@ npm install
 2. Export your API key:
 
 ```bash
-export HARUSPEX_API_KEY=your_real_key_here
+export HARUSPEX_CHATGPT_API_KEY=your_real_key_here
 ```
 
 3. Start the local MCP server:
@@ -145,7 +145,7 @@ This workflow now matches the existing Haruspex GCP setup directly:
 
 Google Cloud Secret Manager:
 
-- `HARUSPEX_API_KEY`
+- `HARUSPEX_CHATGPT_API_KEY`
 
 Required workflow input at deploy time:
 
@@ -165,7 +165,7 @@ After pushing this repo to GitHub:
 
 ```bash
 docker build -t haruspex-chatgpt-app .
-docker run --rm -p 8080:8080 -e HARUSPEX_API_KEY=your_real_key_here -e HARUSPEX_WIDGET_DOMAIN=https://chatgpt.haruspex.guru haruspex-chatgpt-app
+docker run --rm -p 8080:8080 -e HARUSPEX_CHATGPT_API_KEY=your_real_key_here -e HARUSPEX_WIDGET_DOMAIN=https://chatgpt.haruspex.guru haruspex-chatgpt-app
 ```
 
 Then open:

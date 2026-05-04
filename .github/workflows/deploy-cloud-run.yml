@@ -72,7 +72,7 @@ jobs:
             --allow-unauthenticated \
             --port 8080 \
             --set-env-vars="NODE_ENV=production,PORT=8080,HOST=0.0.0.0,MCP_PATH=/mcp,HARUSPEX_API_BASE_URL=https://haruspex.guru/api/v1,HARUSPEX_WIDGET_DOMAIN=${{ inputs.widget_domain }},HARUSPEX_APP_NAME=haruspex-chatgpt-app,HARUSPEX_APP_VERSION=0.1.0" \
-            --set-secrets="HARUSPEX_API_KEY=HARUSPEX_API_KEY:latest" \
+            --set-secrets="HARUSPEX_CHATGPT_API_KEY=HARUSPEX_CHATGPT_API_KEY:latest" \
             --memory 1Gi \
             --cpu 1 \
             --concurrency 20 \
