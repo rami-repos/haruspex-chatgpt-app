@@ -207,7 +207,7 @@ function HaruspexIcon() {
   );
 }
 
-function Header(props: { title: string; subtitle: string; badge?: string }) {
+function Header(props: { title: string; subtitle: string; badge?: string; badgeTone?: { bg: string; border: string; text: string } }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "start", marginBottom: 20 }}>
       <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
@@ -220,7 +220,17 @@ function Header(props: { title: string; subtitle: string; badge?: string }) {
         </div>
       </div>
       {props.badge ? (
-        <div style={{ padding: "8px 12px", borderRadius: 999, background: "rgba(255,255,255,0.04)", border: `1px solid ${COLORS.border}`, color: COLORS.cyan, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.12em", whiteSpace: "nowrap" }}>
+        <div style={{
+          padding: "8px 12px",
+          borderRadius: 999,
+          background: props.badgeTone?.bg || "rgba(255,255,255,0.04)",
+          border: `1px solid ${props.badgeTone?.border || COLORS.border}`,
+          color: props.badgeTone?.text || COLORS.cyan,
+          fontSize: 12,
+          textTransform: "uppercase",
+          letterSpacing: "0.12em",
+          whiteSpace: "nowrap"
+        }}>
           {props.badge}
         </div>
       ) : null}
@@ -416,7 +426,11 @@ function App() {
     const score = typeof payload.score === "number" ? payload.score : 0;
     const strongest = positives[0];
     const keyRisk = watch[0];
-    const decisionSummary = String(payload.trajectorySummary || "Current directional pressure is mixed.");
+    const rawDecisionSummary = String(payload.trajectorySummary || "Current directional pressure is mixed.");
+    const decisionSummary = rawDecisionSummary === "No recent score history is available yet."
+      ? "This is a fresh Haruspex snapshot with limited recent trend history, so the score is current but short-term momentum context is still building."
+      : rawDecisionSummary;
+    const signalStyle = signalTone(String(payload.signal || "hold"));
 
     return (
       <main style={shellStyle()}>
@@ -424,6 +438,7 @@ function App() {
           title={String(payload.symbol || "Haruspex")}
           subtitle={String(payload.companyName || "Latest Haruspex decision layer for the current market setup.")}
           badge={String(payload.signal || "analysis")}
+          badgeTone={signalStyle}
         />
 
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: isMobile ? "1fr" : "1.05fr 0.95fr", alignItems: "stretch" }}>
