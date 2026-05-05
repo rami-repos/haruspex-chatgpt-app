@@ -272,7 +272,6 @@ function Gauge(props: { score: number; outlook: string; change?: number; compact
         <span>Composite score strength</span>
         <span>{formatChange(props.change) ? `Momentum ${formatChange(props.change)}` : "Momentum stable"}</span>
       </div>
-      <InfoFootnote />
     </div>
   );
 }
@@ -286,7 +285,6 @@ function DecisionCard(props: { signal: string; summary: string }) {
         {props.signal}
       </div>
       <p style={{ margin: 0, fontSize: 16, lineHeight: 1.55, color: COLORS.text }}>{props.summary}</p>
-      <InfoFootnote />
     </div>
   );
 }
@@ -299,7 +297,6 @@ function StatChip(props: { title: string; value: string; note: string; tone?: st
         {props.value}
       </div>
       <div style={{ fontSize: 13, lineHeight: 1.45, color: COLORS.muted, marginTop: "auto" }}>{props.note}</div>
-      <InfoFootnote />
     </div>
   );
 }
@@ -315,7 +312,6 @@ function FactorRow(props: { item: DimensionScore; tone?: string }) {
       </div>
       <div style={{ fontSize: 12, color: COLORS.muted2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.1em" }}>Change {formatChange(props.item.change)}</div>
       <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.muted }}>{String(props.item.summary || "")}</div>
-      <InfoFootnote />
     </div>
   );
 }
@@ -347,7 +343,6 @@ function MatrixTable(props: { rows: string[][]; headers: string[] }) {
           </tbody>
         </table>
       </div>
-      <InfoFootnote />
     </div>
   );
 }
@@ -478,7 +473,6 @@ function App() {
               ) : null}
               <li>{decisionSummary}</li>
             </ul>
-            <InfoFootnote />
           </div>
 
           <div style={{ display: "grid", gap: 16, gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))" }}>
@@ -501,12 +495,11 @@ function App() {
               <a href={String(payload.shareUrl || "#")} style={{ color: COLORS.blue, textDecoration: "none", wordBreak: "break-all", fontSize: 15 }}>
                 {String(payload.shareUrl || "")}
               </a>
-              <InfoFootnote />
             </div>
           </div>
         </div>
 
-        {disclaimer ? <p style={{ color: COLORS.muted2, fontSize: 12, margin: "16px 2px 0" }}>{disclaimer}</p> : null}
+        <p style={{ color: COLORS.muted2, fontSize: 12, margin: "16px 2px 0" }}>{INFO_LINE}</p>
       </main>
     );
   }
