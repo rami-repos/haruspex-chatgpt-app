@@ -276,7 +276,7 @@ function Gauge(props: { score: number; outlook: string; change?: number; compact
   );
 }
 
-function DecisionCard(props: { signal: string; summary: string }) {
+function DecisionCard(props: { signal: string; summary: string; showDisclosure?: boolean }) {
   const tone = signalTone(props.signal);
   return (
     <div style={{ ...panelStyle(true), minHeight: 170 }}>
@@ -285,6 +285,7 @@ function DecisionCard(props: { signal: string; summary: string }) {
         {props.signal}
       </div>
       <p style={{ margin: 0, fontSize: 16, lineHeight: 1.55, color: COLORS.text }}>{props.summary}</p>
+      {props.showDisclosure ? <div style={{ fontSize: 11, color: COLORS.muted2, marginTop: 14 }}>{INFO_LINE}</div> : null}
     </div>
   );
 }
@@ -439,7 +440,7 @@ function App() {
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: isMobile ? "1fr" : "1.05fr 0.95fr", alignItems: "stretch" }}>
           <Gauge score={score} outlook={String(payload.outlook || "neutral")} change={payload.change as number} compact={isMobile} />
           <div style={{ display: "grid", gap: 14 }}>
-            <DecisionCard signal={String(payload.signal || "hold")} summary={decisionSummary} />
+            <DecisionCard signal={String(payload.signal || "hold")} summary={decisionSummary} showDisclosure />
             <div style={{ display: "grid", gap: 12, gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(2, minmax(0, 1fr))" }}>
               <StatChip
                 title="Biggest positive"
@@ -499,7 +500,6 @@ function App() {
           </div>
         </div>
 
-        <p style={{ color: COLORS.muted2, fontSize: 12, margin: "16px 2px 0" }}>{INFO_LINE}</p>
       </main>
     );
   }
