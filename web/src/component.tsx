@@ -112,6 +112,7 @@ function signalTone(signal: string | undefined) {
   const normalized = (signal || "").toLowerCase();
   if (normalized.includes("buy")) return { bg: "rgba(24, 118, 91, 0.26)", border: "rgba(62, 236, 180, 0.34)", text: COLORS.cyan };
   if (normalized.includes("hold")) return { bg: "rgba(133, 102, 31, 0.24)", border: "rgba(245, 191, 99, 0.24)", text: COLORS.amber };
+  if (normalized.includes("reduce")) return { bg: "rgba(151, 92, 24, 0.24)", border: "rgba(255, 163, 72, 0.28)", text: "#ffb866" };
   return { bg: "rgba(122, 37, 48, 0.28)", border: "rgba(255, 109, 109, 0.25)", text: COLORS.red };
 }
 
