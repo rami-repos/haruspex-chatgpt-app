@@ -1,0 +1,70 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Main gradient for the sphere -->
+    <radialGradient id="sphereGradientLight" cx="50%" cy="40%" r="50%" fx="50%" fy="40%">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#6D28D9"/>
+    </radialGradient>
+    <!-- Highlight gradient -->
+    <linearGradient id="highlightGradientLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Wire gradient -->
+    <linearGradient id="wireGradientLight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#5B21B6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Geometric crystal wireframe -->
+  <g stroke="#7C3AED" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Top point -->
+    <path d="M60 8 L85 30 L60 45 L35 30 Z"/>
+    <!-- Upper connections -->
+    <line x1="60" y1="8" x2="60" y2="45"/>
+    <line x1="35" y1="30" x2="85" y2="30"/>
+    <!-- Side triangles -->
+    <path d="M35 30 L20 50 L45 55"/>
+    <path d="M85 30 L100 50 L75 55"/>
+    <!-- Lower crystal structure -->
+    <path d="M45 55 L60 45 L75 55"/>
+    <line x1="45" y1="55" x2="60" y2="70"/>
+    <line x1="75" y1="55" x2="60" y2="70"/>
+    <line x1="20" y1="50" x2="60" y2="70"/>
+    <line x1="100" y1="50" x2="60" y2="70"/>
+    <!-- Decorative arrow top right -->
+    <path d="M92 18 L98 12 L98 20 M98 12 L90 12"/>
+  </g>
+
+  <!-- Central sphere -->
+  <circle cx="60" cy="52" r="12" fill="url(#sphereGradientLight)"/>
+  <ellipse cx="57" cy="48" rx="4" ry="3" fill="url(#highlightGradientLight)"/>
+
+  <!-- Circuit/neural extensions (bottom tentacles) -->
+  <g stroke="url(#wireGradientLight)" stroke-width="2" fill="none" stroke-linecap="round">
+    <!-- Left extensions -->
+    <path d="M40 70 L30 85 L30 95"/>
+    <circle cx="30" cy="98" r="3" fill="#7C3AED"/>
+
+    <path d="M48 72 L42 90 L38 105"/>
+    <circle cx="38" cy="108" r="3" fill="#7C3AED"/>
+
+    <path d="M55 74 L52 95 L50 110"/>
+    <circle cx="50" cy="113" r="3" fill="#7C3AED"/>
+
+    <!-- Center extension -->
+    <path d="M60 75 L60 100 L60 112"/>
+    <circle cx="60" cy="115" r="3" fill="#8B5CF6"/>
+
+    <!-- Right extensions -->
+    <path d="M65 74 L68 95 L70 110"/>
+    <circle cx="70" cy="113" r="3" fill="#7C3AED"/>
+
+    <path d="M72 72 L78 90 L82 105"/>
+    <circle cx="82" cy="108" r="3" fill="#7C3AED"/>
+
+    <path d="M80 70 L90 85 L90 95"/>
+    <circle cx="90" cy="98" r="3" fill="#7C3AED"/>
+  </g>
+</svg>

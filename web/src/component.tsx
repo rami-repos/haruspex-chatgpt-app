@@ -103,8 +103,8 @@ function titleCase(input: string | undefined) {
 
 function scoreColor(score: number | undefined) {
   if (typeof score !== "number") return COLORS.muted;
-  if (score >= 70) return COLORS.cyan;
-  if (score >= 55) return COLORS.amber;
+  if (score >= 60) return COLORS.cyan;
+  if (score >= 40) return COLORS.blue;
   return COLORS.red;
 }
 
