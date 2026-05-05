@@ -103,7 +103,7 @@ export function registerHaruspexApp(server: McpServer, apiClient: HaruspexApiCli
   registerAppTool(server, "review_watchlist", {
     title: "Review a watchlist",
     description: "Use this when the user wants a ranked review of 3 or more stock tickers, asks for a watchlist update, or wants a portfolio-style scan without trade advice.",
-    inputSchema: { symbols: z.array(z.string().min(1)).min(3).max(50) },
+    inputSchema: { symbols: z.array(z.string().min(1)).min(3).max(10) },
     annotations: { readOnlyHint: true },
     _meta: {
       ui: { resourceUri: RESOURCE_URI },
