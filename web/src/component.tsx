@@ -95,6 +95,12 @@ function formatDate(value: string | undefined) {
   }).format(date);
 }
 
+function formatDeltaLabel(value: number | undefined) {
+  if (typeof value !== "number" || value === 0) return "";
+  if (value > 0) return `Up ${value} pts`;
+  return `Down ${Math.abs(value)} pts`;
+}
+
 function displayLabel(input: string | undefined) {
   if (!input) return "Unknown";
   return input.replaceAll("-", " ");
@@ -299,7 +305,7 @@ function StatChip(props: { title: string; value: string; note: string; tone?: st
       <div style={{ fontSize: 16, lineHeight: 1.2, fontWeight: 500, color: props.tone || COLORS.text, marginBottom: 10, maxWidth: "10ch", minHeight: 40 }}>
         {props.value}
       </div>
-      <div style={{ fontSize: 13, lineHeight: 1.45, color: COLORS.muted, marginTop: "auto" }}>{props.note}</div>
+      <div style={{ fontSize: 13, lineHeight: 1.45, color: COLORS.muted, marginTop: "auto", whiteSpace: "pre-line" }}>{props.note}</div>
     </div>
   );
 }
@@ -464,13 +470,15 @@ function App() {
               <StatChip
                 title="Biggest positive"
                 value={strongest ? titleCase(strongest.label || strongest.key) : "None"}
-                note={strongest ? `Score ${strongest.score ?? "n/a"}${formatChange(strongest.change) ? ` • ${formatChange(strongest.change)}` : ""}` : "No supporting factor surfaced"}
+                note={strongest ? `Score ${strongest.score ?? "n/a"}${formatDeltaLabel(strongest.change) ? `
+${formatDeltaLabel(strongest.change)}` : ""}` : "No supporting factor surfaced"}
                 tone={COLORS.cyan}
               />
               <StatChip
                 title="Biggest risk"
                 value={keyRisk ? titleCase(keyRisk.label || keyRisk.key) : "None"}
-                note={keyRisk ? `Score ${keyRisk.score ?? "n/a"}${formatChange(keyRisk.change) ? ` • ${formatChange(keyRisk.change)}` : ""}` : "No acute risk surfaced"}
+                note={keyRisk ? `Score ${keyRisk.score ?? "n/a"}${formatDeltaLabel(keyRisk.change) ? `
+${formatDeltaLabel(keyRisk.change)}` : ""}` : "No acute risk surfaced"}
                 tone={COLORS.red}
               />
             </div>
