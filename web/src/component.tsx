@@ -555,6 +555,7 @@ ${formatDeltaLabel(keyRisk.change)}` : ""}` : "No acute risk surfaced"}
             String(row.topDriver || ""),
           ])}
         />
+        <InfoFootnote />
       </main>
     );
   }
@@ -578,6 +579,7 @@ ${formatDeltaLabel(keyRisk.change)}` : ""}` : "No acute risk surfaced"}
             <div style={{ display: "grid", gap: 12 }}>{contradictory.map((item) => <FactorRow key={String(item.key || item.label)} item={item} tone={COLORS.red} />)}</div>
           </div>
         </div>
+        <InfoFootnote />
       </main>
     );
   }
@@ -592,6 +594,7 @@ ${formatDeltaLabel(keyRisk.change)}` : ""}` : "No acute risk surfaced"}
           headers={["Ticker", "Company", "Exchange"]}
           rows={matches.map((item) => [String(item.symbol || ""), String(item.name || ""), String(item.exchange || "")])}
         />
+        <InfoFootnote />
       </main>
     );
   }
