@@ -305,6 +305,7 @@ function StatChip(props: { title: string; value: string; note: string; tone?: st
 }
 
 function FactorRow(props: { item: DimensionScore; tone?: string }) {
+  const change = formatChange(props.item.change);
   return (
     <div style={{ ...panelStyle(true), padding: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline", marginBottom: 8 }}>
@@ -313,7 +314,7 @@ function FactorRow(props: { item: DimensionScore; tone?: string }) {
           {typeof props.item.score === "number" ? props.item.score + "/100" : "n/a"}
         </div>
       </div>
-      <div style={{ fontSize: 12, color: COLORS.muted2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.1em" }}>Change {formatChange(props.item.change)}</div>
+      {change ? <div style={{ fontSize: 12, color: COLORS.muted2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.1em" }}>{change}</div> : null}
       <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.muted }}>{String(props.item.summary || "")}</div>
     </div>
   );
@@ -451,7 +452,6 @@ function App() {
         <Header
           title={String(payload.symbol || "Haruspex")}
           subtitle={String(payload.companyName || "Latest Haruspex decision layer for the current market setup.")}
-          badge={String(payload.signal || "analysis")}
           badgeTone={signalStyle}
           mobile={isMobile}
         />
@@ -464,13 +464,13 @@ function App() {
               <StatChip
                 title="Biggest positive"
                 value={strongest ? titleCase(strongest.label || strongest.key) : "None"}
-                note={strongest ? `Score ${strongest.score ?? "n/a"}${formatChange(strongest.change) ? ` • Change ${formatChange(strongest.change)}` : ""}` : "No supporting factor surfaced"}
+                note={strongest ? `Score ${strongest.score ?? "n/a"}${formatChange(strongest.change) ? ` • ${formatChange(strongest.change)}` : ""}` : "No supporting factor surfaced"}
                 tone={COLORS.cyan}
               />
               <StatChip
                 title="Biggest risk"
                 value={keyRisk ? titleCase(keyRisk.label || keyRisk.key) : "None"}
-                note={keyRisk ? `Score ${keyRisk.score ?? "n/a"}${formatChange(keyRisk.change) ? ` • Change ${formatChange(keyRisk.change)}` : ""}` : "No acute risk surfaced"}
+                note={keyRisk ? `Score ${keyRisk.score ?? "n/a"}${formatChange(keyRisk.change) ? ` • ${formatChange(keyRisk.change)}` : ""}` : "No acute risk surfaced"}
                 tone={COLORS.red}
               />
             </div>
