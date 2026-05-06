@@ -207,21 +207,23 @@ function HaruspexIcon() {
   );
 }
 
-function Header(props: { title: string; subtitle: string; badge?: string; badgeTone?: { bg: string; border: string; text: string } }) {
+function Header(props: { title: string; subtitle: string; badge?: string; badgeTone?: { bg: string; border: string; text: string }; mobile?: boolean }) {
+  const mobile = Boolean(props.mobile);
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "start", marginBottom: 20 }}>
-      <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-        <div style={{ width: 52, height: 52, display: "grid", placeItems: "center", borderRadius: 16, background: "rgba(255,255,255,0.04)", border: `1px solid ${COLORS.border}` }}>
+    <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", justifyContent: "space-between", gap: mobile ? 12 : 16, alignItems: mobile ? "stretch" : "start", marginBottom: 20 }}>
+      <div style={{ display: "flex", gap: mobile ? 12 : 14, alignItems: "center", minWidth: 0 }}>
+        <div style={{ width: mobile ? 46 : 52, height: mobile ? 46 : 52, flex: "0 0 auto", display: "grid", placeItems: "center", borderRadius: mobile ? 14 : 16, background: "rgba(255,255,255,0.04)", border: `1px solid ${COLORS.border}` }}>
           <HaruspexIcon />
         </div>
-        <div>
-          <div style={{ fontSize: 28, letterSpacing: "-0.03em", fontWeight: 700, marginBottom: 4 }}>{props.title}</div>
-          <div style={{ color: COLORS.muted, fontSize: 14, lineHeight: 1.45, maxWidth: 540 }}>{props.subtitle}</div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: mobile ? 24 : 28, lineHeight: 1.05, letterSpacing: "-0.03em", fontWeight: 700, marginBottom: 4, overflowWrap: "anywhere" }}>{props.title}</div>
+          <div style={{ color: COLORS.muted, fontSize: mobile ? 13 : 14, lineHeight: 1.55, maxWidth: mobile ? "none" : 540 }}>{props.subtitle}</div>
         </div>
       </div>
       {props.badge ? (
         <div style={{
-          padding: "8px 12px",
+          alignSelf: mobile ? "flex-start" : "flex-start",
+          padding: mobile ? "9px 14px" : "8px 12px",
           borderRadius: 999,
           background: props.badgeTone?.bg || "rgba(255,255,255,0.04)",
           border: `1px solid ${props.badgeTone?.border || COLORS.border}`,
@@ -317,7 +319,23 @@ function FactorRow(props: { item: DimensionScore; tone?: string }) {
   );
 }
 
-function MatrixTable(props: { rows: string[][]; headers: string[] }) {
+function MatrixTable(props: { rows: string[][]; headers: string[]; mobile?: boolean }) {
+  if (props.mobile) {
+    return (
+      <div style={{ display: "grid", gap: 12 }}>
+        {props.rows.map((row, rowIndex) => (
+          <div key={row.join("|") + rowIndex} style={{ ...panelStyle(true), padding: 14 }}>
+            {row.map((cell, cellIndex) => (
+              <div key={cellIndex} style={{ display: "grid", gridTemplateColumns: "92px minmax(0, 1fr)", gap: 10, alignItems: "start", padding: cellIndex === row.length - 1 ? 0 : "0 0 10px", marginBottom: cellIndex === row.length - 1 ? 0 : 10, borderBottom: cellIndex === row.length - 1 ? "none" : `1px solid ${COLORS.border}` }}>
+                <div style={{ fontSize: 11, color: COLORS.muted2, textTransform: "uppercase", letterSpacing: "0.14em" }}>{props.headers[cellIndex]}</div>
+                <div style={{ color: cellIndex === 0 ? COLORS.text : COLORS.muted, fontSize: 15, lineHeight: 1.45, overflowWrap: "anywhere" }}>{cell}</div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
     <div style={panelStyle()}>
       <div style={{ overflowX: "auto" }}>
@@ -435,6 +453,7 @@ function App() {
           subtitle={String(payload.companyName || "Latest Haruspex decision layer for the current market setup.")}
           badge={String(payload.signal || "analysis")}
           badgeTone={signalStyle}
+          mobile={isMobile}
         />
 
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: isMobile ? "1fr" : "1.05fr 0.95fr", alignItems: "stretch" }}>
@@ -510,7 +529,7 @@ function App() {
     const flags = asArray<WatchFlag>(payload.flags);
     return (
       <main style={shellStyle()}>
-        <Header title="Watchlist Review" subtitle="Relative strength, pressure points, and top movers across the names you requested." badge={`${rows.length} covered`} />
+        <Header title="Watchlist Review" subtitle="Relative strength, pressure points, and top movers across the names you requested." badge={`${rows.length} covered`} mobile={isMobile} />
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", marginBottom: 16 }}>
           <StatChip title="Covered" value={String(rows.length)} note="Tickers with current Haruspex data" tone={COLORS.cyan} />
           <StatChip title="Biggest mover" value={String(movers[0]?.symbol || "—")} note={String(movers[0]?.summary || "No standout move") } tone={COLORS.blue} />
@@ -518,6 +537,7 @@ function App() {
         </div>
         <p style={sectionTitleStyle()}>Ranked results</p>
         <MatrixTable
+          mobile={isMobile}
           headers={["Ticker", "Score", "Change", "Signal", "Top driver"]}
           rows={rows.map((row) => [
             String(row.symbol || ""),
@@ -536,7 +556,10 @@ function App() {
     const contradictory = asArray<DimensionScore>(payload.contradictoryDimensions);
     return (
       <main style={shellStyle()}>
-        <Header title={String(payload.symbol || "Thesis Check")} subtitle={String(payload.summary || "A structured read on whether the latest Haruspex evidence still supports the current case.")} badge={String(payload.verdict || "review")} />
+        <Header title={String(payload.symbol || "Thesis Check")} subtitle="Current thesis verdict from the latest Haruspex evidence." badge={String(payload.verdict || "review")} mobile={isMobile} />
+        <div style={{ ...panelStyle(), marginBottom: 16 }}>
+          <div style={{ fontSize: isMobile ? 16 : 17, lineHeight: 1.65, color: COLORS.muted, overflowWrap: "anywhere" }}>{String(payload.summary || "A structured read on whether the latest Haruspex evidence still supports the current case.")}</div>
+        </div>
         <div style={{ display: "grid", gap: 16, gridTemplateColumns: isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))" }}>
           <div>
             <p style={sectionTitleStyle()}>Supporting dimensions</p>
@@ -555,8 +578,9 @@ function App() {
     const matches = asArray<Record<string, unknown>>(payload.matches);
     return (
       <main style={shellStyle()}>
-        <Header title="Ticker Search" subtitle={`Matching listed symbols for “${String(payload.query || "") }”.`} badge={`${matches.length} matches`} />
+        <Header title="Ticker Search" subtitle={`Matching listed symbols for “${String(payload.query || "") }”.`} badge={`${matches.length} matches`} mobile={isMobile} />
         <MatrixTable
+          mobile={isMobile}
           headers={["Ticker", "Company", "Exchange"]}
           rows={matches.map((item) => [String(item.symbol || ""), String(item.name || ""), String(item.exchange || "")])}
         />
