@@ -283,7 +283,7 @@ function Gauge(props: { score: number; outlook: string; change?: number; compact
 
 function DecisionCard(props: { summary: string; showDisclosure?: boolean }) {
   return (
-    <div style={{ ...panelStyle(true), minHeight: 170 }}>
+    <div style={panelStyle(true)}>
       <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: COLORS.text }}>{props.summary}</p>
       {props.showDisclosure ? <div style={{ fontSize: 11, color: COLORS.muted2, marginTop: 14 }}>{INFO_LINE}</div> : null}
     </div>
