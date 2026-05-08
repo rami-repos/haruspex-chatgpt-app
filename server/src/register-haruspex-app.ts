@@ -38,7 +38,7 @@ function buildWidgetHtml() {
 function makeContentText(result: HaruspexToolResult) {
   switch (result.kind) {
     case "stock-analysis":
-      return result.symbol + " score " + result.score + "/100 with " + result.signal + " signal and " + result.outlook + " outlook.";
+      return result.symbol + " score " + result.score + "/100 with " + result.outlook + " market conditions.";
     case "watchlist-review":
       return "Reviewed " + result.rows.length + " covered tickers from a watchlist of " + result.symbolsRequested.length + ".";
     case "thesis-tracker":
