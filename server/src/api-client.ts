@@ -13,6 +13,25 @@ function buildApiUrl(baseUrl: string, path: string) {
   return new URL(normalizedPath, normalizedBase);
 }
 
+function stripSignalFromScore(score: ScoreApiResult | (ScoreApiResult & { signal?: string })): ScoreApiResult {
+  const { signal: _signal, ...rest } = score as ScoreApiResult & { signal?: string };
+  return rest;
+}
+
+function stripSignalFromHistory(result: HistoryApiResult): HistoryApiResult {
+  return {
+    ...result,
+    scores: result.scores.map((score) => stripSignalFromScore(score)),
+  };
+}
+
+function stripSignalFromBatch(result: BatchApiResult): BatchApiResult {
+  return {
+    ...result,
+    scores: result.scores.map((entry) => ("error" in entry ? entry : stripSignalFromScore(entry))),
+  };
+}
+
 export class HaruspexApiClient {
   constructor(private readonly options: ApiClientOptions) {}
 
@@ -45,18 +64,18 @@ export class HaruspexApiClient {
   }
 
   async fetchStockScore(symbol: string): Promise<ScoreApiResult> {
-    return this.request<ScoreApiResult>("/scores/" + encodeURIComponent(symbol));
+    return stripSignalFromScore(await this.request<ScoreApiResult & { signal?: string }>("/scores/" + encodeURIComponent(symbol)));
   }
 
   async fetchStockScoreHistory(symbol: string, limit = 30): Promise<HistoryApiResult> {
-    return this.request<HistoryApiResult>("/scores/" + encodeURIComponent(symbol) + "/history?limit=" + limit);
+    return stripSignalFromHistory(await this.request<HistoryApiResult>("/scores/" + encodeURIComponent(symbol) + "/history?limit=" + limit));
   }
 
   async fetchBatchScores(symbols: string[]): Promise<BatchApiResult> {
-    return this.request<BatchApiResult>("/scores/batch", {
+    return stripSignalFromBatch(await this.request<BatchApiResult>("/scores/batch", {
       method: "POST",
       body: JSON.stringify({ symbols }),
-    });
+    }));
   }
 
   async fetchSearchStocks(path: string): Promise<SearchApiResult> {

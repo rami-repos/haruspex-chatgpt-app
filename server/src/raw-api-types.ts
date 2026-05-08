@@ -12,7 +12,6 @@ export type ScoreApiResult = {
   previousScore: number | null;
   change: number;
   outlook: string;
-  signal: string;
   shareUrl: string | null;
   date: string;
   topicScores: Record<string, { name: string; score: number; change: number }>;
