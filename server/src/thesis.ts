@@ -124,5 +124,10 @@ export function buildThesisSummary(
 ) {
   const topAligned = aligned.slice(0, 2).map((item) => item.label).join(", ") || "no clear strengths";
   const topRisk = contradictory.slice(0, 2).map((item) => item.label).join(", ") || "no clear risks";
-  return "For " + symbol + ", the stated thesis (" + thesis + ") currently looks " + verdict + ". The most relevant supporting dimensions are " + topAligned + ", while the most relevant tensions come from " + topRisk + ".";
+  const verdictPhrase = verdict === "supported"
+    ? "still looks supported by the latest Haruspex evidence"
+    : verdict === "at risk"
+      ? "looks less supported by the latest Haruspex evidence"
+      : "looks mixed based on the latest Haruspex evidence";
+  return "For " + symbol + ", the stated thesis (" + thesis + ") " + verdictPhrase + ". The most relevant supporting dimensions are " + topAligned + ", while the most relevant tensions come from " + topRisk + ".";
 }
