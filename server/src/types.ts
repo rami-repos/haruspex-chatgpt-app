@@ -13,7 +13,6 @@ export type StockAnalysisResult = {
   score: number;
   change: number;
   outlook: string;
-  signal: string;
   shareUrl: string;
   positives: DimensionScore[];
   watch: DimensionScore[];
@@ -31,7 +30,6 @@ export type WatchlistRow = {
   score: number;
   change: number;
   outlook: string;
-  signal: string;
   shareUrl: string;
   topDriver?: string;
 };

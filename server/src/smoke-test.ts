@@ -43,7 +43,7 @@ async function main() {
   assert(Array.isArray(analysis.positives), "analyzeStock positives is not an array");
   assert(Array.isArray(analysis.watch), "analyzeStock watch is not an array");
   assert(isNonEmptyString(analysis.trajectorySummary), "analyzeStock missing trajectory summary");
-  console.log("analyzeStock ok: " + analysis.symbol + " " + analysis.score + "/100 " + analysis.signal + " " + analysis.outlook);
+  console.log("analyzeStock ok: " + analysis.symbol + " " + analysis.score + "/100 " + analysis.outlook);
 
   const review = await client.reviewWatchlist(watchlist);
   assert(review.kind === "watchlist-review", "reviewWatchlist returned wrong kind");
@@ -64,7 +64,6 @@ async function main() {
     analysis: {
       symbol: analysis.symbol,
       score: analysis.score,
-      signal: analysis.signal,
       outlook: analysis.outlook,
       shareUrl: analysis.shareUrl,
     },

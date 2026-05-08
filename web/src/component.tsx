@@ -15,7 +15,6 @@ type WatchlistRow = {
   score?: number;
   change?: number;
   outlook?: string;
-  signal?: string;
   shareUrl?: string;
   topDriver?: string;
 };

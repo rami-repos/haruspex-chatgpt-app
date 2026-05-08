@@ -71,7 +71,6 @@ export function adaptStockAnalysis(
     score: score.score,
     change: score.change,
     outlook: score.outlook,
-    signal: score.signal,
     shareUrl: score.shareUrl || ("https://haruspex.guru/search?q=" + encodeURIComponent(score.symbol)),
     positives: dimensions.slice(0, 3),
     watch: dimensions.filter((item) => item.score !== 0 && (item.score < 50 || item.change <= -5)).slice(0, 3),
@@ -97,7 +96,6 @@ export function adaptWatchlistReview(symbolsRequested: string[], result: BatchAp
         score: entry.score,
         change: entry.change,
         outlook: entry.outlook,
-        signal: entry.signal,
         shareUrl: entry.shareUrl || ("https://haruspex.guru/search?q=" + encodeURIComponent(entry.symbol)),
         topDriver: dimensions[0]?.label,
       };
