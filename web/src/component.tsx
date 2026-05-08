@@ -121,6 +121,13 @@ function scoreColor(score: number | undefined) {
   return COLORS.red;
 }
 
+function outlookTone(outlook: string | undefined) {
+  const normalized = (outlook || "").toLowerCase();
+  if (normalized.includes("bull")) return { bg: "rgba(24, 118, 91, 0.26)", border: "rgba(62, 236, 180, 0.34)", text: COLORS.cyan };
+  if (normalized.includes("bear")) return { bg: "rgba(122, 37, 48, 0.28)", border: "rgba(255, 109, 109, 0.25)", text: COLORS.red };
+  return { bg: "rgba(52, 77, 122, 0.24)", border: "rgba(108, 146, 223, 0.24)", text: COLORS.blue };
+}
+
 
 function shellStyle(): React.CSSProperties {
   return {
@@ -239,7 +246,7 @@ function Header(props: { title: string; subtitle: string; badge?: string; badgeT
   );
 }
 
-function Gauge(props: { score: number; change?: number; compact?: boolean }) {
+function Gauge(props: { score: number; outlook: string; change?: number; compact?: boolean }) {
   const score = clamp(props.score, 0, 100);
   const degrees = 360 * (score / 100);
   const ringColor = scoreColor(score);
@@ -262,9 +269,6 @@ function Gauge(props: { score: number; change?: number; compact?: boolean }) {
             <div>
               <div style={{ fontSize: props.compact ? 42 : 54, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1 }}>{score}</div>
               <div style={{ fontSize: props.compact ? 18 : 24, color: COLORS.muted, marginBottom: 14 }}>/100</div>
-              <div style={{ display: "inline-flex", padding: "8px 14px", borderRadius: 999, border: `1px solid ${COLORS.border}`, background: "rgba(255,255,255,0.04)", color: ringColor, fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase" }}>
-                Score view
-              </div>
             </div>
           </div>
         </div>
@@ -439,17 +443,21 @@ function App() {
     const decisionSummary = rawDecisionSummary === "No recent score history is available yet."
       ? "This is a fresh Haruspex snapshot with limited recent trend history, so the score is current but short-term momentum context is still building."
       : rawDecisionSummary;
+    const outlook = String(payload.outlook || "neutral");
+    const outlookStyle = outlookTone(outlook);
 
     return (
       <main style={shellStyle()}>
         <Header
           title={String(payload.symbol || "Haruspex")}
           subtitle={String(payload.companyName || "Latest Haruspex decision layer for the current market setup.")}
+          badge={outlook}
+          badgeTone={outlookStyle}
           mobile={isMobile}
         />
 
         <div style={{ display: "grid", gap: 14, gridTemplateColumns: isMobile ? "1fr" : "1.05fr 0.95fr", alignItems: "stretch" }}>
-          <Gauge score={score} change={payload.change as number} compact={isMobile} />
+          <Gauge score={score} outlook={outlook} change={payload.change as number} compact={isMobile} />
           <div style={{ display: "grid", gap: 14 }}>
             <DecisionCard summary={decisionSummary} showDisclosure />
             <div style={{ display: "grid", gap: 12, gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(2, minmax(0, 1fr))" }}>
